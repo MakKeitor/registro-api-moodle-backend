@@ -2,7 +2,9 @@ import type { FastifyPluginAsync } from "fastify"
 import { requireAdmin } from "../../middlewares/requireAdmin"
 import {
   listApplicationsHandler,
-  updateApplicationStatusHandler
+  updateApplicationStatusHandler,
+  type UpdateStatusParams,
+  type UpdateStatusBody
 } from "./applications.controller"
 
 const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
@@ -14,7 +16,7 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
   )
 
   // Actualizar estado de una solicitud (aprobar/rechazar/en revisión)
-  fastify.patch(
+  fastify.patch<{ Params: UpdateStatusParams; Body: UpdateStatusBody }>(
     "/applications/:id/status",
     { preHandler: requireAdmin },
     updateApplicationStatusHandler

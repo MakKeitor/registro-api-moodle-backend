@@ -81,19 +81,19 @@ export const SignupOneShotBody = z.object({
   departamento_residencia: fromMultipartText(z.string().min(2)),
   municipio_residencia: fromMultipartText(z.string().min(2)),
   telefono: fromMultipartText(z.string().min(8)),
-  etnia: fromMultipartText(z.enum(ETNIA_VALUES)),
+  etnia: fromMultipartText(z.string().min(1)),
 
   // Paso 3 (institución)
-  entidad: fromMultipartText(z.enum(ENTIDAD_VALUES)),
-  institucion: fromMultipartText(z.enum(INSTITUCION_VALUES)),
-  dependencia: fromMultipartText(z.enum(DEPENDENCIA_VALUES)),
-  renglon: fromMultipartText(z.enum(RENGLON_VALUES)),
+  entidad: fromMultipartText(z.string().min(1)),
+  institucion: fromMultipartText(z.string().min(1).optional().or(z.literal(""))),
+  dependencia: fromMultipartText(z.string().optional().or(z.literal(""))),
+  renglon: fromMultipartText(z.string().min(1)),
   profesion: fromMultipartText(z.string().or(z.literal(""))),
   puesto: fromMultipartText(z.string().or(z.literal(""))),
   sector: fromMultipartText(z.string().or(z.literal(""))),
 
   // Paso 4 (colegiado)
-  colegio: fromMultipartText(z.enum(COLEGIO_VALUES)),
+  colegio: fromMultipartText(z.string().min(1)),
   numeroColegiado: fromMultipartText(z.string().min(1)),
 })
 

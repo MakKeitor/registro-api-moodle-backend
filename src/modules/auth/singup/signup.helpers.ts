@@ -21,6 +21,7 @@ const RENGLON_MAP: Record<string, $Enums.Renglon> = {
   "PERSONAL PERMANENTE 011": "PERSONAL_PERMANENTE_011",
   "GRUPO 029": "GRUPO_029",
   "SUBGRUPO 18 Y 022": "SUBGRUPO_18_Y_022",
+  "189": "SUBGRUPO_18_Y_022", // código numérico del subgrupo 18 y 022
   "NO APLICA": "NO_APLICA",
   "RENGLON 021": "RENGLON_021",
   "RENGLÓN 021": "RENGLON_021", // alias con acento

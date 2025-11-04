@@ -49,11 +49,11 @@ interface ApplicationListItem {
 }
 
 // Tipos para los requests
-interface UpdateStatusParams {
+export interface UpdateStatusParams {
   id: string
 }
 
-interface UpdateStatusBody {
+export interface UpdateStatusBody {
   status: "approved" | "rejected" | "in_review"
   note?: string
 }
