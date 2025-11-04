@@ -48,6 +48,99 @@ interface ApplicationListItem {
   files?: FileInfo[]
 }
 
+// Tipos para los requests
+interface UpdateStatusParams {
+  id: string
+}
+
+interface UpdateStatusBody {
+  status: "approved" | "rejected" | "in_review"
+  note?: string
+}
+
+// Handler para aprobar/rechazar/cambiar estado
+export async function updateApplicationStatusHandler(
+  req: FastifyRequest<{ Params: UpdateStatusParams; Body: UpdateStatusBody }>,
+  reply: FastifyReply
+) {
+  const { id } = req.params
+  const { status, note } = req.body
+
+  // Validar que el status sea válido
+  if (!["approved", "rejected", "in_review"].includes(status)) {
+    return reply.code(400).send({
+      ok: false,
+      error: "Invalid status. Must be 'approved', 'rejected', or 'in_review'",
+    })
+  }
+
+  // Mapear status del frontend al backend
+  const statusBackendMap: Record<string, $Enums.SolicitudStatus> = {
+    approved: "APROBADA",
+    rejected: "RECHAZADA",
+    in_review: "EN_REVISION",
+  }
+
+  const newStatus = statusBackendMap[status]
+
+  try {
+    // Verificar que la solicitud existe
+    const existingSolicitud = await prisma.solicitud.findUnique({
+      where: { id },
+      select: { id: true, status: true },
+    })
+
+    if (!existingSolicitud) {
+      return reply.code(404).send({
+        ok: false,
+        error: "Solicitud no encontrada",
+      })
+    }
+
+    // Actualizar la solicitud
+    const updateData: any = {
+      status: newStatus,
+    }
+
+    // Agregar fecha según el estado
+    if (newStatus === "APROBADA") {
+      updateData.approvedAt = new Date()
+    } else if (newStatus === "RECHAZADA") {
+      updateData.rejectedAt = new Date()
+    }
+
+    const solicitud = await prisma.solicitud.update({
+      where: { id },
+      data: updateData,
+    })
+
+    // Si hay nota, crear ReviewNote
+    if (note && note.trim().length > 0) {
+      await prisma.reviewNote.create({
+        data: {
+          solicitudId: id,
+          message: note.trim(),
+        },
+      })
+    }
+
+    return reply.send({
+      ok: true,
+      data: {
+        id: solicitud.id,
+        status: statusMap[solicitud.status],
+        message: `Solicitud ${status === "approved" ? "aprobada" : status === "rejected" ? "rechazada" : "actualizada"} exitosamente`,
+      },
+    })
+  } catch (error) {
+    req.log.error({ err: error }, "Error updating application status")
+    return reply.code(500).send({
+      ok: false,
+      error: "Error al actualizar el estado de la solicitud",
+    })
+  }
+}
+
 export async function listApplicationsHandler(
   _req: FastifyRequest,
   reply: FastifyReply
