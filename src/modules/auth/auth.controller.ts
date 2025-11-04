@@ -203,6 +203,14 @@ export async function signupOneShot(req: FastifyRequest, reply: FastifyReply) {
   // Si el usuario NO fue pre-llenado -> PENDIENTE (con archivos)
   const solicitudStatus = body.status || "PENDIENTE"
 
+  // (4.6) Truncar campos que pueden ser muy largos
+  const truncate = (str: string | undefined | null, maxLength: number): string | null => {
+    if (!str) return null
+    return str.length > maxLength ? str.substring(0, maxLength) : str
+  }
+
+  const colegioTruncated = truncate(body.colegio, 64)
+
   // (5) Transacción: User + Solicitud + Files
   const result = await prisma.$transaction(async (tx) => {
     // 5.1 Usuario (APPLICANT) si no existe
@@ -256,7 +264,7 @@ export async function signupOneShot(req: FastifyRequest, reply: FastifyReply) {
         puesto: body.puesto || null,
         sector: body.sector || null,
 
-        colegio: body.colegio,
+        colegio: colegioTruncated,
         colegiadoNo: body.numeroColegiado,
 
         correoInstitucional: body.correoInstitucional || null,
@@ -298,7 +306,7 @@ export async function signupOneShot(req: FastifyRequest, reply: FastifyReply) {
         puesto: body.puesto || null,
         sector: body.sector || null,
 
-        colegio: body.colegio,
+        colegio: colegioTruncated,
         colegiadoNo: body.numeroColegiado,
 
         correoInstitucional: body.correoInstitucional || null,
