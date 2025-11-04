@@ -31,16 +31,16 @@
     "fastify": "^5.0.0",
     "fastify-cli": "^7.4.0",
     "fastify-plugin": "^5.0.0",
-    "prisma": "^6.17.1",
     "uuid": "^13.0.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/node": "^24.7.1",
     "c8": "^10.1.2",
-    "ts-node": "^10.4.0",
     "concurrently": "^9.0.0",
     "fastify-tsconfig": "^3.0.0",
+    "prisma": "^6.17.1",
+    "ts-node": "^10.4.0",
     "typescript": "~5.8.2"
   }
 }

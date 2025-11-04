@@ -198,6 +198,11 @@ export async function signupOneShot(req: FastifyRequest, reply: FastifyReply) {
   const departamentoName = body.departamento_residencia
   const municipioName = body.municipio_residencia
 
+  // (4.5) El status viene del frontend
+  // Si el usuario fue pre-llenado desde la API -> APROBADA (sin archivos)
+  // Si el usuario NO fue pre-llenado -> PENDIENTE (con archivos)
+  const solicitudStatus = body.status || "PENDIENTE"
+
   // (5) Transacción: User + Solicitud + Files
   const result = await prisma.$transaction(async (tx) => {
     // 5.1 Usuario (APPLICANT) si no existe
@@ -257,8 +262,9 @@ export async function signupOneShot(req: FastifyRequest, reply: FastifyReply) {
         correoInstitucional: body.correoInstitucional || null,
         correoPersonal: body.correoPersonal || null,
 
-        status: "PENDIENTE",
+        status: solicitudStatus,
         submittedAt: new Date(),
+        ...(solicitudStatus === "APROBADA" ? { approvedAt: new Date() } : {}),
       },
 
       create: {
@@ -298,8 +304,9 @@ export async function signupOneShot(req: FastifyRequest, reply: FastifyReply) {
         correoInstitucional: body.correoInstitucional || null,
         correoPersonal: body.correoPersonal || null,
 
-        status: "PENDIENTE",
+        status: solicitudStatus,
         submittedAt: new Date(),
+        ...(solicitudStatus === "APROBADA" ? { approvedAt: new Date() } : {}),
       },
       select: { id: true },
     })
@@ -347,7 +354,10 @@ export async function signupOneShot(req: FastifyRequest, reply: FastifyReply) {
     ok: true,
     data: {
       solicitudId: result.solicitudId,
-      status: "PENDIENTE",
+      status: solicitudStatus,
+      message: solicitudStatus === "APROBADA"
+        ? "Solicitud aprobada automáticamente"
+        : "Solicitud pendiente de revisión",
       files: {
         dpi: dpiFile?.relPath ?? null,
         contrato: contratoFile?.relPath ?? null,

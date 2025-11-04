@@ -51,6 +51,9 @@ export const SignupOneShotBody = z.object({
       .regex(/^\d{13}$/)
   ),
 
+  // Status desde frontend
+  status: fromMultipartText(z.enum(["PENDIENTE", "APROBADA"]).optional()),
+
   // Paso 1 (cuenta)
   email: fromMultipartText(z.email()),
   password: fromMultipartText(z.string().regex(StrongPassword)),
