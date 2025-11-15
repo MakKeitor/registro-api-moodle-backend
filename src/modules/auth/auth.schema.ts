@@ -81,7 +81,7 @@ export const SignupOneShotBody = z.object({
   departamento_residencia: fromMultipartText(z.string().min(2)),
   municipio_residencia: fromMultipartText(z.string().min(2)),
   telefono: fromMultipartText(z.string().min(8)),
-  etnia: fromMultipartText(z.string().min(1)),
+  etnia: fromMultipartText(z.enum([...ETNIA_VALUES] as const)),
 
   // Paso 3 (institución)
   entidad: fromMultipartText(z.string().min(1)),
