@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify"
 import { prisma } from "../../db"
 import type { $Enums } from "../../generated/prisma"
+import type { Prisma } from "../../generated/prisma"
 
 type ApplicationStatus = "pending" | "in_review" | "approved" | "rejected"
 
@@ -98,7 +99,7 @@ export async function updateApplicationStatusHandler(
     }
 
     // Actualizar la solicitud
-    const updateData: any = {
+    const updateData: Prisma.SolicitudUpdateInput = {
       status: newStatus,
     }
 
@@ -129,7 +130,13 @@ export async function updateApplicationStatusHandler(
       data: {
         id: solicitud.id,
         status: statusMap[solicitud.status],
-        message: `Solicitud ${status === "approved" ? "aprobada" : status === "rejected" ? "rechazada" : "actualizada"} exitosamente`,
+        message: `Solicitud ${
+          status === "approved"
+            ? "aprobada"
+            : status === "rejected"
+            ? "rechazada"
+            : "actualizada"
+        } exitosamente`,
       },
     })
   } catch (error) {
@@ -146,10 +153,7 @@ export async function listApplicationsHandler(
   reply: FastifyReply
 ) {
   const solicitudes = await prisma.solicitud.findMany({
-    orderBy: [
-      { submittedAt: "desc" },
-      { createdAt: "desc" },
-    ],
+    orderBy: [{ submittedAt: "desc" }, { createdAt: "desc" }],
     include: {
       applicant: { select: { email: true } },
       Entidad: { select: { name: true } },
@@ -174,14 +178,10 @@ export async function listApplicationsHandler(
       ""
 
     const entidad =
-      solicitud.entidadName ??
-      solicitud.Entidad?.name ??
-      "SOCIEDAD CIVIL"
+      solicitud.entidadName ?? solicitud.Entidad?.name ?? "SOCIEDAD CIVIL"
 
     const institucion =
-      solicitud.institucionName ??
-      solicitud.Institucion?.name ??
-      "NO APLICA"
+      solicitud.institucionName ?? solicitud.Institucion?.name ?? "NO APLICA"
 
     const dependencia =
       solicitud.dependenciaName ?? solicitud.Dependencia?.name ?? undefined
@@ -213,14 +213,46 @@ export async function listApplicationsHandler(
       telefono: solicitud.telefono ?? undefined,
       direccion:
         direccionParts.length > 0 ? direccionParts.join(", ") : undefined,
-      files: solicitud.files?.map((file) => ({
-        id: file.id,
-        path: file.path,
-        mimeType: file.mimeType,
-        sizeBytes: file.sizeBytes,
-      })) ?? [],
+      files:
+        solicitud.files?.map((file) => ({
+          id: file.id,
+          path: file.path,
+          mimeType: file.mimeType,
+          sizeBytes: file.sizeBytes,
+        })) ?? [],
     }
   })
 
   return reply.send({ ok: true, data })
+}
+
+export async function getMetricsHandler(
+  _req: FastifyRequest,
+  reply: FastifyReply
+) {
+  const totalApplications = await prisma.solicitud.count()
+
+  const applicationsByStatus = await prisma.solicitud.groupBy({
+    by: ["status"],
+    _count: { status: true },
+  })
+  const statusCounts: Record<ApplicationStatus, number> = {
+    pending: 0,
+    in_review: 0,
+    approved: 0,
+    rejected: 0,
+  }
+
+  for (const group of applicationsByStatus) {
+    const mappedStatus = statusMap[group.status]
+    statusCounts[mappedStatus] = group._count.status
+  }
+
+  return reply.send({
+    ok: true,
+    data: {
+      totalApplications,
+      applicationsByStatus: statusCounts,
+    },
+  })
 }

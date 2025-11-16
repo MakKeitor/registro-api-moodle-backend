@@ -4,7 +4,8 @@ import {
   listApplicationsHandler,
   updateApplicationStatusHandler,
   type UpdateStatusParams,
-  type UpdateStatusBody
+  type UpdateStatusBody,
+  getMetricsHandler,
 } from "./applications.controller"
 
 const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
@@ -20,6 +21,13 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
     "/applications/:id/status",
     { preHandler: requireAdmin },
     updateApplicationStatusHandler
+  )
+
+  // Obtener métricas de solicitudes
+  fastify.get(
+    "/applications/metrics",
+    { preHandler: requireAdmin },
+    getMetricsHandler
   )
 }
 
