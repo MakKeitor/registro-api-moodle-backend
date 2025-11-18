@@ -1,0 +1,54 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  ci-build:
+    name: Build backend (TypeScript)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.x
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build TypeScript
+        run: bun run build:ts
+
+  deploy:
+    name: Deploy to server (Docker Compose)
+    needs: ci-build
+    runs-on: self-hosted  # tu runner del servidor
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Build & restart stack with Docker Compose
+        run: |
+          docker compose down
+          docker compose up -d --build
+
+      - name: Healthcheck backend
+        run: |
+          echo "Esperando a que el backend responda en /health..."
+          for i in $(seq 1 20); do
+            if curl -fsS http://localhost:4000/health > /dev/null; then
+              echo "✅ Backend saludable"
+              exit 0
+            fi
+            echo "⏳ Intento $i/20: backend aún no responde..."
+            sleep 3
+          done
+          echo "❌ El backend no respondió en /health"
+          exit 1

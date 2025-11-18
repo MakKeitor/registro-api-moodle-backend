@@ -1,28 +1,27 @@
 services:
-  db:
+  registro_db:
     image: postgres:16
     container_name: registro_db
-    restart: unless-stopped
+    restart: no
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "5432:5432"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: super_segura_123
+      POSTGRES_DB: registro_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
 
-  # Opcional: Adminer para ver la DB en el navegador
-  # adminer:
-  #   image: adminer
-  #   restart: unless-stopped
-  #   ports:
-  #     - "8080:8080"
+  backend:
+    build: .
+    container_name: registro-backend
+    restart: no
+    ports:
+      - "4000:4000"
+    depends_on:
+      - registro_db
+    env_file:
+      - .env.production
 
 volumes:
   postgres_data:
