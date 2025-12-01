@@ -33,11 +33,13 @@ const app: FastifyPluginAsync<AppOptions> = async (
     hsts: { maxAge: 15552000 }, // 180 días
   })
 
-  await fastify.register(rateLimit, { max: 10, timeWindow: "1 minute" })
+  // await fastify.register(rateLimit, { max: 10, timeWindow: "1 minute" })
 
   await fastify.register(cors, {
     origin: "http://localhost:3000",
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
   })
   await fastify.register(cookie, { secret: env.SESSION_SECRET })
 
