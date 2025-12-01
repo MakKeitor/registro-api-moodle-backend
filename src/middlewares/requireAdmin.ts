@@ -2,7 +2,8 @@
 import type { FastifyReply, FastifyRequest } from "fastify"
 import { prisma } from "../db"
 
-const COOKIE_NAME = process.env.NODE_ENV === "production" ? "__Host-sid" : "sid"
+const IS_HTTPS = process.env.USE_HTTPS === "true"
+const COOKIE_NAME = IS_HTTPS ? "__Host-sid" : "sid"
 
 export async function requireAdmin(req: FastifyRequest, reply: FastifyReply) {
   const sid = req.cookies?.[COOKIE_NAME] ?? req.cookies?.sid ?? req.cookies?.["__Host-sid"]

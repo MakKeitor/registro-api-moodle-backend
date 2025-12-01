@@ -31,8 +31,11 @@ import type {
 } from "@fastify/multipart"
 import { createMoodleUser } from "../moodle-lms/moodle-lms.service"
 
-const COOKIE_NAME = process.env.NODE_ENV === "production" ? "__Host-sid" : "sid"
-const COOKIE_SECURE = process.env.NODE_ENV === "production"
+// Para HTTPS usar "__Host-sid" y secure: true
+// Para HTTP usar "sid" y secure: false
+const IS_HTTPS = process.env.USE_HTTPS === "true"
+const COOKIE_NAME = IS_HTTPS ? "__Host-sid" : "sid"
+const COOKIE_SECURE = IS_HTTPS
 
 type LoginReq = FastifyRequest<{ Body: z.input<typeof LoginBody> }>
 type CreateUserReq = FastifyRequest<{ Body: z.input<typeof CreateUserBody> }>
