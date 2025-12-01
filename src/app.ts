@@ -36,7 +36,11 @@ const app: FastifyPluginAsync<AppOptions> = async (
   // await fastify.register(rateLimit, { max: 10, timeWindow: "1 minute" })
 
   await fastify.register(cors, {
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "http://10.10.8.24:3000",
+      process.env.FRONTEND_URL || "",
+    ].filter(Boolean),
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
