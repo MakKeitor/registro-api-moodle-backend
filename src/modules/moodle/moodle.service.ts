@@ -1,6 +1,10 @@
 // src/modules/moodle/moodle.service.ts
 import axios, { type AxiosInstance } from "axios"
+import https from "node:https"
 import { env } from "../../env"
+
+// Ignorar verificación SSL (el servidor externo tiene certificado no verificable)
+const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 
 // Cliente axios con headers profesionales
 const externalApiClient = axios.create({
@@ -13,6 +17,7 @@ const externalApiClient = axios.create({
     "Connection": "keep-alive",
     "Accept-Encoding": "gzip, deflate, br",
   },
+  httpsAgent,
 })
 
 // Variables para almacenar el token
