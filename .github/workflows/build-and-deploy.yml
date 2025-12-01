@@ -2,7 +2,7 @@ name: Backend CI/CD
 
 on:
   push:
-    branches: ["main"]
+    branches: ["cicd"]
   workflow_dispatch:
 
 jobs:
@@ -17,7 +17,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.x
+          bun-version: latest
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -28,11 +28,41 @@ jobs:
   deploy:
     name: Deploy to server (Docker Compose)
     needs: ci-build
-    runs-on: self-hosted  # tu runner del servidor
+    runs-on:
+      - self-hosted
+      - prod-registro
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Create .env.production file
+        run: |
+          cat > .env.production << 'EOF'
+          PORT=${{ secrets.PORT }}
+          NODE_ENV=${{ secrets.NODE_ENV }}
+          APP_URL=${{ secrets.APP_URL }}
+
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_PORT=${{ secrets.DB_PORT }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+
+          SESSION_SECRET=${{ secrets.SESSION_SECRET }}
+          ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+
+          UPLOADS_DIR=${{ secrets.UPLOADS_DIR }}
+
+          MOODLE_SIGNUP_API_URL=${{ secrets.MOODLE_SIGNUP_API_URL }}
+          MOODLE_SIGNUP_API_TOKEN=${{ secrets.MOODLE_SIGNUP_API_TOKEN }}
+
+          PREFILL_API_URL=${{ secrets.PREFILL_API_URL }}
+          BASE_API_USER=${{ secrets.BASE_API_USER }}
+          BASE_API_PASSWORD=${{ secrets.BASE_API_PASSWORD }}
+          EOF
 
       - name: Build & restart stack with Docker Compose
         run: |
